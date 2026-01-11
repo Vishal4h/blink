@@ -1,11 +1,14 @@
 import cv2
 import mediapipe as mp
 import time
+import winsound
 from blink_detector import BlinkDetector
+from overlay import Overlay
 
-LOW_BPM = 12
+LOW_BPM = 1
 CALIBRATION_TIME = 20
 FRAME_SKIP = 2
+SOUND_COOLDOWN = 3
 
 mp_face = mp.solutions.face_mesh
 face_mesh = mp_face.FaceMesh(
@@ -18,6 +21,7 @@ face_mesh = mp_face.FaceMesh(
 
 blink = BlinkDetector()
 cap = cv2.VideoCapture(0)
+overlay = Overlay()
 
 LEFT_EYE = [33, 160, 158, 133, 153, 144]
 RIGHT_EYE = [362, 385, 387, 263, 373, 380]
@@ -30,6 +34,7 @@ bpm_history = []
 frame_count = 0
 blinks = 0
 calibrated = False
+last_beep = 0
 
 ui_blinks = 0
 ui_bpm = 0
@@ -87,28 +92,13 @@ while True:
         ui_bpm = bpm
         ui_warn = calibrated and face_visible and bpm < LOW_BPM
 
-    y = 40
-    gap = 40
+        if ui_warn and time.time() - last_beep > SOUND_COOLDOWN:
+            winsound.Beep(1000, 200)
+            last_beep = time.time()
 
-    cv2.putText(frame, f"Blinks: {ui_blinks}", (20, y),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+        overlay.update(ui_blinks, ui_bpm, ui_warn, ui_status)
 
-    y += gap
-    cv2.putText(frame, f"Blinks/min: {ui_bpm}", (20, y),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-
-    y += gap
-    if ui_warn:
-        cv2.putText(frame, "BLINK MORE!", (20, y),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 3)
-
-    y += gap
-    if ui_status:
-        cv2.putText(frame, ui_status, (20, y),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
-
-    cv2.imshow("Blink", frame)
-
+    cv2.imshow("Blink (press ESC to exit)", frame)
     if cv2.waitKey(1) & 0xFF == 27:
         break
 
