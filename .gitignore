@@ -1,5 +1,4 @@
 .venv/
-blink_app/.venv/
 __pycache__/
 *.pyc
 .env
