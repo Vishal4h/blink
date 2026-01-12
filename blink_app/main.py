@@ -5,7 +5,7 @@ import winsound
 from blink_detector import BlinkDetector
 from overlay import Overlay
 
-LOW_BPM = 1
+LOW_BPM = 15
 CALIBRATION_TIME = 20
 FRAME_SKIP = 2
 SOUND_COOLDOWN = 3
